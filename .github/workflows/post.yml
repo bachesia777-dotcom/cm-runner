@@ -25,8 +25,8 @@ jobs:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           IG_USER_ID_2: ${{ secrets.IG_USER_ID_2 }}
           GRAPH_VERSION: v26.0
-          GITHUB_TOKEN: ${{ secrets.PRIVATE_REPO_KEY }}
-          GITHUB_REPOSITORY: bachesia777-dotcom/content-machine
+          SRC_TOKEN: ${{ secrets.PRIVATE_REPO_KEY }}
+          SRC_REPO: bachesia777-dotcom/content-machine
         run: |
           pip install -q -r requirements.txt
           # details stay out of the public log; results are saved in the private queue

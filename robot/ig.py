@@ -70,7 +70,7 @@ def _check(resp):
 
 def temp_link(video_path, repo_path=None, branch="queue"):
     """Short-lived download URL for the file, from the GitHub contents API (private repo, token in URL)."""
-    gh, repo = os.environ.get("GITHUB_TOKEN"), os.environ.get("GITHUB_REPOSITORY")
+    gh, repo = os.environ.get("SRC_TOKEN") or os.environ.get("GITHUB_TOKEN"), os.environ.get("SRC_REPO") or os.environ.get("GITHUB_REPOSITORY")
     if gh and repo and repo_path:
         r = requests.get(f"https://api.github.com/repos/{repo}/contents/{repo_path}", params={"ref": branch},
                          headers={"Authorization": f"Bearer {gh}", "Accept": "application/vnd.github+json"}, timeout=60)
