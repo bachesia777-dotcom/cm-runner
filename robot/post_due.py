@@ -29,6 +29,10 @@ def main():
         return 0
     items = q.load(qpath)
     # at most one reel per account per run, so accounts never get bursts
+    # skip Asia prime time (04:00-10:00 UTC = 08:00-14:00 Dubai); post in US/EU hours
+    if 4 <= datetime.now(timezone.utc).hour < 10:
+        print("Outside US/EU window - nothing posted.")
+        return 0
     todo, seen = [], set()
     for it in q.due(items, limit=1000):
         acct = it.get("account") or "default"

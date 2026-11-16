@@ -101,8 +101,19 @@ def publish_reel(video_path, caption, trial_strategy=None, repo_path=None, share
         params["trial_params"] = json.dumps({"graduation_strategy": trial_strategy})
     else:
         params["share_to_feed"] = "true" if share_to_feed else "false"
-    container = _stage("create container", lambda: requests.post(
-        f"{GRAPH}/{ver}/{ig_id}/media", data=params, timeout=TIMEOUT))["id"]
+    # US/EU location tag (rotates); if Instagram rejects it, post without a location
+    locs = [x for x in os.environ.get("LOCATION_IDS", "").split(",") if x.strip()]
+    if locs:
+        params["location_id"] = locs[int(time.time() // 3600) % len(locs)].strip()
+    try:
+        container = _stage("create container", lambda: requests.post(
+            f"{GRAPH}/{ver}/{ig_id}/media", data=params, timeout=TIMEOUT))["id"]
+    except IGError:
+        if "location_id" not in params:
+            raise
+        params.pop("location_id")
+        container = _stage("create container", lambda: requests.post(
+            f"{GRAPH}/{ver}/{ig_id}/media", data=params, timeout=TIMEOUT))["id"]
 
     with open(video_path, "rb") as fh:
         body = fh.read()  # send with Content-Length (no chunked upload)
