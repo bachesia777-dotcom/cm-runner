@@ -26,6 +26,7 @@ jobs:
           IG_USER_ID_2: ${{ secrets.IG_USER_ID_2 }}
           GRAPH_VERSION: v26.0
           LOCATION_IDS: "108424279189115,106078429431815,110970792260960"
+          LOCATION_IDS_JAFFARYSTUDIOS: "108424279189115,110148382341970,110970792260960"
           SRC_TOKEN: ${{ secrets.PRIVATE_REPO_KEY }}
           SRC_REPO: bachesia777-dotcom/content-machine
         run: |

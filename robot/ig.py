@@ -102,7 +102,7 @@ def publish_reel(video_path, caption, trial_strategy=None, repo_path=None, share
     else:
         params["share_to_feed"] = "true" if share_to_feed else "false"
     # US/EU location tag (rotates); if Instagram rejects it, post without a location
-    locs = [x for x in os.environ.get("LOCATION_IDS", "").split(",") if x.strip()]
+    locs = [x for x in (os.environ.get("LOCATION_IDS_" + (account or "jaffarym").upper()) or os.environ.get("LOCATION_IDS", "")).split(",") if x.strip()]
     if locs:
         params["location_id"] = locs[int(time.time() // 3600) % len(locs)].strip()
     try:
