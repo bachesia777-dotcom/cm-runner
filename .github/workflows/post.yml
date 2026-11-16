@@ -24,7 +24,7 @@ jobs:
           META_PAGE_TOKEN_2: ${{ secrets.META_PAGE_TOKEN_2 }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           IG_USER_ID_2: ${{ secrets.IG_USER_ID_2 }}
-          GRAPH_VERSION: ${{ vars.GRAPH_VERSION }}
+          GRAPH_VERSION: v26.0
           GITHUB_TOKEN: ${{ secrets.PRIVATE_REPO_KEY }}
           GITHUB_REPOSITORY: bachesia777-dotcom/content-machine
         run: |
