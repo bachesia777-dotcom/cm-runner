@@ -33,7 +33,14 @@ def main():
     if 4 <= datetime.now(timezone.utc).hour < 10:
         print("Outside US/EU window - nothing posted.")
         return 0
-    todo, seen = [], set()
+    # never post to the same account twice within 110 minutes (avoids bursts when catching up)
+    now = datetime.now(timezone.utc)
+    recent = set()
+    for o in items:
+        pa = o.get("posted_at")
+        if pa and (now - datetime.strptime(pa[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)) < timedelta(minutes=110):
+            recent.add(o.get("account") or "default")
+    todo, seen = [], set(recent)
     for it in q.due(items, limit=1000):
         acct = it.get("account") or "default"
         if acct in seen:

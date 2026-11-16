@@ -1,7 +1,7 @@
 name: Post
 on:
   schedule:
-    - cron: "35 */2 * * *"   # every 2 hours
+    - cron: "*/20 * * * *"   # every 20 min (GitHub skips many runs; the script keeps 2h between posts per account)
   workflow_dispatch: {}
 concurrency: { group: posting, cancel-in-progress: false }
 jobs:
