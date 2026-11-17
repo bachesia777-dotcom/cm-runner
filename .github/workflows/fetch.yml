@@ -1,0 +1,19 @@
+name: Fetch
+on:
+  workflow_dispatch:
+    inputs:
+      urls: { required: true }
+      branch: { default: "fetch-out" }
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - env: { URLS: "${{ inputs.urls }}", KEY: "${{ secrets.PRIVATE_REPO_KEY }}", BR: "${{ inputs.branch }}" }
+        run: |
+          mkdir out && cd out; i=0
+          for u in $URLS; do ext="${u%%\?*}"; ext="${ext##*.}"; curl -sSL -o "f$i.$ext" "$u"; i=$((i+1)); done
+          git init -q && git checkout -q -b "$BR"
+          git config user.name bot; git config user.email bot@users.noreply.github.com
+          git add -A && git commit -qm "Fetched files"
+          git push -q -f "https://x-access-token:${KEY}@github.com/bachesia777-dotcom/content-machine.git" "$BR"
+          echo done
