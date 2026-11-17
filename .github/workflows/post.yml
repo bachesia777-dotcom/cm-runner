@@ -1,24 +1,19 @@
 name: Post
 on:
   schedule:
-    - cron: "*/20 * * * *"   # every 20 min (GitHub skips many runs; the script keeps 2h between posts per account)
+    - cron: "*/20 * * * *"   # backup only; GitHub often skips these
   workflow_dispatch: {}
+permissions: { contents: read, actions: write }
 concurrency: { group: posting, cancel-in-progress: false }
 jobs:
   post:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with:
-          repository: bachesia777-dotcom/content-machine
-          ref: queue
-          path: q
-          token: ${{ secrets.PRIVATE_REPO_KEY }}
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - name: Post
+      - name: Post (checks every 10 min for ~5.5 h; public repo = free minutes)
         env:
           META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
           META_PAGE_TOKEN_2: ${{ secrets.META_PAGE_TOKEN_2 }}
@@ -29,15 +24,21 @@ jobs:
           LOCATION_IDS_JAFFARYSTUDIOS: "108424279189115,110148382341970,110970792260960"
           SRC_TOKEN: ${{ secrets.PRIVATE_REPO_KEY }}
           SRC_REPO: bachesia777-dotcom/content-machine
+          KEY: ${{ secrets.PRIVATE_REPO_KEY }}
         run: |
           pip install -q -r requirements.txt
-          # details stay out of the public log; results are saved in the private queue
-          python robot/post_due.py --queue-dir q --ledger q/posted.csv --limit 2 > log.txt 2>&1 || true
-          tail -n 1 log.txt
-      - name: Save status to the private repo
-        run: |
-          cd q
-          git config user.name "content-machine-bot"
-          git config user.email "content-machine-bot@users.noreply.github.com"
-          git add -A
-          git diff --cached --quiet || { git commit -qm "Queue status update"; git pull -q --rebase origin queue; git push -q origin HEAD:queue; }
+          git config --global user.name "content-machine-bot"
+          git config --global user.email "content-machine-bot@users.noreply.github.com"
+          end=$(( $(date +%s) + 19800 ))
+          while [ $(date +%s) -lt $end ]; do
+            rm -rf q
+            git clone -q --depth 1 -b queue "https://x-access-token:${KEY}@github.com/${SRC_REPO}.git" q
+            python robot/post_due.py --queue-dir q --ledger q/posted.csv --limit 2 > log.txt 2>&1 || true
+            tail -n 1 log.txt
+            (cd q && git add -A && (git diff --cached --quiet || (git commit -qm "Queue status update" && git pull -q --rebase origin queue && git push -q origin HEAD:queue))) || true
+            sleep 600
+          done
+      - name: Start the next round
+        if: always()
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: gh workflow run post.yml -R ${{ github.repository }}
