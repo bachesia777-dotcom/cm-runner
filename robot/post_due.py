@@ -30,9 +30,13 @@ def main():
     items = q.load(qpath)
     # at most one reel per account per run, so accounts never get bursts
     # skip Asia prime time (04:00-10:00 UTC = 08:00-14:00 Dubai); post in US/EU hours
+    quiet = False
     if 4 <= datetime.now(timezone.utc).hour < 10:
-        print("Outside US/EU window - nothing posted.")
-        return 0
+        quiet = True
+        items_now = [o for o in items if o.get("status") == "pending" and o.get("post_now")]
+        if not items_now:
+            print("Outside US/EU window - nothing posted.")
+            return 0
     # never post to the same account twice within 110 minutes (avoids bursts when catching up)
     now = datetime.now(timezone.utc)
     recent = set()
@@ -42,6 +46,8 @@ def main():
             recent.add(o.get("account") or "default")
     todo, seen = [], set(recent)
     for it in q.due(items, limit=1000):
+        if quiet and not it.get("post_now"):
+            continue
         acct = it.get("account") or "default"
         if acct in seen:
             continue
