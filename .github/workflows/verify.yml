@@ -3,10 +3,12 @@ on:
   workflow_dispatch:
     inputs:
       file: { required: true, description: "path in content-machine, e.g. data/candidates.txt" }
+      delay: { required: false, default: "0", description: "seconds to wait first (API rate limit)" }
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
+      - run: sleep ${{ inputs.delay }}
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
         with:
