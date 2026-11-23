@@ -1,0 +1,29 @@
+name: Verify
+on:
+  workflow_dispatch:
+    inputs:
+      file: { required: true, description: "path in content-machine, e.g. data/candidates.txt" }
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: bachesia777-dotcom/content-machine
+          path: p
+          token: ${{ secrets.PRIVATE_REPO_KEY }}
+          sparse-checkout: data
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - env:
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_USER_ID_2: ${{ secrets.IG_USER_ID_2 }}
+          GRAPH_VERSION: v26.0
+          F: ${{ inputs.file }}
+        run: |
+          pip install -q requests
+          cd p && python ../robot/verify.py "$F" | tail -1
+          git config user.name bot; git config user.email bot@users.noreply.github.com
+          git add -A data/research && git commit -qm "Verify" && git pull -q --rebase && git push -q; echo done
