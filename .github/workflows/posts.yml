@@ -1,0 +1,31 @@
+name: Posts
+on:
+  workflow_dispatch:
+    inputs:
+      handle: { required: true }
+      delay: { required: false, default: "0", description: "seconds to wait first (API rate limit)" }
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - run: sleep ${{ inputs.delay }}
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: bachesia777-dotcom/content-machine
+          path: p
+          token: ${{ secrets.PRIVATE_REPO_KEY }}
+          sparse-checkout: data
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - env:
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_USER_ID_2: ${{ secrets.IG_USER_ID_2 }}
+          GRAPH_VERSION: v26.0
+          H: ${{ inputs.handle }}
+        run: |
+          pip install -q requests
+          cd p && python ../robot/posts.py "$H" | tail -1
+          git config user.name bot; git config user.email bot@users.noreply.github.com
+          git add -A data/research && git commit -qm "Posts" && git pull -q --rebase && git push -q; echo done
